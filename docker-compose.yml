@@ -1,0 +1,39 @@
+version: "3.8"
+services:
+  nest_boilerplate_app:
+    container_name: nest-boilerplate
+    image: node:18-alpine3.15
+    working_dir: /app
+    command: sh -c "export TZ='Asia/Ho_Chi_Minh' && yarn && yarn sequelize:run && yarn start:dev"
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    networks:
+      - nest-network
+    volumes:
+      - ./:/app
+      - .env:/app/.env
+      - ./public:/app/public
+    depends_on:
+      - postgres
+  postgres:
+    image: postgres:15.3
+    container_name: postgres
+    restart: always
+    environment:
+      TZ: 'Asia/Ho_Chi_Minh'
+      PGTZ: 'Asia/Ho_Chi_Minh'
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - './storages/postgres/data:/var/lib/postgresql/data'
+      - ./init-data.sh:/docker-entrypoint-initdb.d/init-data.sh
+    env_file:
+      - .env
+    networks:
+      - nest-network
+networks:
+  nest-network:
+    driver: 'bridge'
